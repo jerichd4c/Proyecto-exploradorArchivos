@@ -1,5 +1,7 @@
 //Librerias necesarias
 import java.awt.*;
+import java.io.*;
+import java.nio.file.*;
 import javax.swing.*;
 
 //Clase principal para ventana
@@ -46,15 +48,47 @@ public class FileExplorer extends  JFrame {
         //agrega barra a ventana principal
         setJMenuBar(menuBar);
     }
+    //creacion de la variable "areaTexto" dentro de la clase fileExplorer
+    private JTextArea areaTexto;
 
     //metodo para invocar UI (escrita)
     private JPanel crearPanelEditor() { 
         //creacion de panel dentro del menu principal para edicion de texto
         JPanel panel = new JPanel(new BorderLayout());
-        JTextArea areaTexto = new JTextArea();
-        //centrarlizar el area del texto
+        areaTexto = new JTextArea();
+        //panel de botones
+        //variable para panel de botones (parte superior)
+        JPanel panelBotones = new JPanel();
+        JButton botonAbrir= new JButton("Abrir");  
+        //action listener para abrir el archivo con los botones de windows
+        botonAbrir.addActionListener(e -> abrirArchivo());
+        //se agrega a la variable de botones
+        panelBotones.add(botonAbrir);
+        //centralizar el area del texto
+        //ahora los botones estan en la parte superior y el area de texto en el centro
+        panel.add(panelBotones, BorderLayout.NORTH);
         panel.add(new JScrollPane(areaTexto), BorderLayout.CENTER);
         return panel;
+    }
+
+    //metodo para abrir el archivo
+    private void abrirArchivo() {
+        //variable tipo JFileChooser para abrir archivos
+        JFileChooser fileChooser = new JFileChooser();
+        //condicional que tiene de argumento fileExplorer y se cumple si es una opcion valida (setter)
+        if (fileChooser.showOpenDialog(this)== JFileChooser.APPROVE_OPTION) {
+           try {
+               //variable para almacenar el contenido del archivo (usa el explorador de archivos para seleccionar el archivo)
+               String contenido = new String(Files.readAllBytes(fileChooser.getSelectedFile().toPath()));
+               //implementa el contenido del archivo en el area de texto
+               areaTexto.setText(contenido);
+           } catch (IOException ex) { 
+            //Error si el archivo que se abre tiene un formato invalido
+            JOptionPane.showMessageDialog(this, "Error al abrir el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+           }
+            
+        }
+        
     }
 
     //ejecucion main
