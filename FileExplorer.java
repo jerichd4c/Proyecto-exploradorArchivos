@@ -2,7 +2,7 @@
 import java.awt.*;
 import javax.swing.*;
 
-//Clase principal
+//Clase principal para ventana
 public class FileExplorer extends  JFrame {
     //creacion de componente para ventanas emergentes
     private CardLayout cardLayout;
@@ -25,7 +25,7 @@ public class FileExplorer extends  JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
         //creacion de botones editor y calculadora para cambiar de ventana
-        mainPanel.add(new JPanel(), "EDITOR");
+        mainPanel.add(crearPanelEditor(), "EDITOR");
         mainPanel.add(new JPanel(), "CALCULADORA");
         //metodo para agregar el panel al menu principal
         add(mainPanel);
@@ -37,7 +37,7 @@ public class FileExplorer extends  JFrame {
         JMenu menu = new JMenu("Navegacion");
         //popup menu para la barra de menu
         JMenuItem itemEditor = new JMenuItem("Editor");
-        //accion para activar ventana de editor y calculadora
+        //accion para activar ventana de editor
         itemEditor.addActionListener(e -> cardLayout.show(mainPanel, "EDITOR"));
         //se agrega itemEditor a menu y se ejecuta cuando se activa addActionListener
         menu.add(itemEditor);
@@ -46,10 +46,53 @@ public class FileExplorer extends  JFrame {
         //agrega barra a ventana principal
         setJMenuBar(menuBar);
     }
-    
+
+    //metodo para invocar UI (escrita)
+    private JPanel crearPanelEditor() { 
+        //creacion de panel dentro del menu principal para edicion de texto
+        JPanel panel = new JPanel(new BorderLayout());
+        JTextArea areaTexto = new JTextArea();
+        //centrarlizar el area del texto
+        panel.add(new JScrollPane(areaTexto), BorderLayout.CENTER);
+        return panel;
+    }
+
     //ejecucion main
     public static void main(String[] args) {
         //execucion del metodo para creacion de ventana
-        new FileExplorer();
+        SwingUtilities.invokeLater(() -> {
+            FileExplorer frame= new FileExplorer();
+            frame.setVisible(true);
+        });
     }
 }
+
+// //Botones principales para los botones
+// class FileEditorPanel extends JPanel {
+//     //variable para el area de texto
+//     private JTextArea areaTexto;
+//     //variable para los botones
+//     private JButton botonAbrir, botonGuardar, botonCerrar;
+//     //metodo para la aparicion de botones en la interfaz
+//     public FileEditorPanel() {
+//         //asignacion de layout
+//         setLayout(new BorderLayout());
+//         //panel de botones
+//         JPanel panelBotones = new JPanel();
+//         botonAbrir= new JButton("Abrir");
+//         botonGuardar = new JButton("Guardar");
+//         botonCerrar = new JButton("Cerrar");
+//         panelBotones.add(botonAbrir);
+//         panelBotones.add(botonGuardar);
+//         panelBotones.add(botonCerrar);
+//         //area de texto
+//         //uso de area texto dentro del metodo fileeditorpanel
+//         areaTexto = new JTextArea();
+//         //creacion de variable para el scroll (barra de desplazamiento)
+//         JScrollPane scrollPane= new JScrollPane(areaTexto);
+//         //asignacion de botones en la parte superior del explorador
+//         add(panelBotones, BorderLayout.NORTH);
+//         //area de texto (ventana) en el centro del explorador
+//         add(scrollPane, BorderLayout.CENTER);
+//     }
+// }
