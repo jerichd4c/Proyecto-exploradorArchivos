@@ -3,6 +3,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.*;
 import javax.swing.*;
+import javax.swing.event.*;
 
 //Clase principal para ventana
 public class FileExplorer extends  JFrame {
@@ -10,6 +11,8 @@ public class FileExplorer extends  JFrame {
     private CardLayout cardLayout;
     //creacion de ventana principal
     private JPanel mainPanel;
+    //creacion de variable para almacenar contador de palabras (se inserta dentro de panelStats)
+    private JLabel etiquetaEstadistica;
     //metodo para inicializar la ventana con parametros default
     public FileExplorer(){
         //titulo del programa
@@ -68,8 +71,39 @@ public class FileExplorer extends  JFrame {
         //ahora los botones estan en la parte superior y el area de texto en el centro
         panel.add(panelBotones, BorderLayout.NORTH);
         panel.add(new JScrollPane(areaTexto), BorderLayout.CENTER);
+        //variable para almacenar estadisticas
+        JPanel panelEstadisticas = new JPanel();   
+        //se inicializa la etiqueta con variables defaults (0)
+        etiquetaEstadistica = new JLabel("Caracteres: 0 | Palabras: 0 | Lineas: 0");
+        //etiquetaEstadistica ahora es el argumento de panelEstadisticas (variable)
+        panelEstadisticas.add(etiquetaEstadistica);
+        //las estadisticas se mostran en la parte inferior
+        panel.add(panelEstadisticas, BorderLayout.SOUTH);
+        //metodo listener para actualizar actualizar los datos (escucha y responde)
+        //getDocument obtiene el area de texto y addDocumentListener escucha el area de texto (creacion)
+        areaTexto.getDocument().addDocumentListener(new DocumentListener() {
+            //si se inserta o remueve se llama a el metodo actualizarEstadisticas y se ejecuta
+            public void insertUpdate(DocumentEvent e) { actualizarEstadisticas(); }
+            public void removeUpdate(DocumentEvent e) { actualizarEstadisticas(); }
+            public void changedUpdate(DocumentEvent e) {}
+        });
         return panel;
     }
+
+    //metodo para actualizar estadisticas
+    private void actualizarEstadisticas() {
+        //variable que almacena el texto leido
+        String texto= areaTexto.getText();
+        //variable que almacena el numero de caracteres
+        int chars= texto.length();
+        //variable cuya condicion es que registra palabra si y solo si hay un espacio entre los caracteres //s
+        int words= texto.isEmpty() ? 0: texto.split("\\s+").length; 
+        //variable que registra una linea si y solo si hay un salto //n
+        int lines= texto.split("\n").length;
+        //metodo que actualizara la etiqueta con los datos obtenidos (%d)
+        etiquetaEstadistica.setText(String.format(
+            "Caracteres: %d | Palabras: %d | Lineas: %d", chars, words, lines));
+        }
 
     //metodo para abrir el archivo
     private void abrirArchivo() {
