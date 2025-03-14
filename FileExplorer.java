@@ -13,6 +13,7 @@ public class FileExplorer extends  JFrame {
     private JPanel mainPanel;
     //creacion de variable para almacenar contador de palabras (se inserta dentro de panelStats)
     private JLabel etiquetaEstadistica;
+    //agregar panel de calculadora como ventana secundaria (boton de popup menu)
     //metodo para inicializar la ventana con parametros default
     public FileExplorer(){
         //titulo del programa
@@ -29,9 +30,10 @@ public class FileExplorer extends  JFrame {
         //ventanas con jpanel
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
-        //creacion de botones editor y calculadora para cambiar de ventana
+        //creacion de botones editor y calculadora para cambiar de ventana (implementacion lista)
         mainPanel.add(crearPanelEditor(), "EDITOR");
-        mainPanel.add(new JPanel(), "CALCULADORA");
+        mainPanel.add(crearPanelCalculadora(), "CALCULADORA");
+
         //metodo para agregar el panel al menu principal
         add(mainPanel);
         //
@@ -54,7 +56,45 @@ public class FileExplorer extends  JFrame {
     //creacion de la variable "areaTexto" dentro de la clase fileExplorer
     private JTextArea areaTexto;
 
-    //metodo para invocar UI (escrita)
+    //metodo para invocar UI (calculadora)
+    private JPanel crearPanelCalculadora() {
+        //creacion del popup con 3 filas y 2 columnas
+        JPanel panel = new JPanel(new GridLayout(3,2));
+        //se almacena primer valor (visualizacion)
+        JTextField texto1 = new JTextField();
+        //se almacena segundo valor (visualizacion)
+        JTextField texto2 = new JTextField();
+        //se almacena resultado (visualizacion)
+        JLabel resultado = new JLabel("Resultado: ");
+
+        panel.add(new JLabel("Primer valor: "));
+        panel.add(texto1);
+        panel.add(new JLabel("Segundo valor: "));
+        panel.add(texto2);
+        //se agrega boton para sumar, ejecutado por actionListener
+        JButton botonSumar= new JButton("Sumar");
+        botonSumar.addActionListener(e->{
+            try {
+                //se hace la operacion de sumar
+                //convierte los numeros a enteros con parseInt
+                int num1 = Integer.parseInt(texto1.getText());
+                int num2 = Integer.parseInt(texto2.getText());
+                //se muestra la operacion
+                resultado.setText("Resultado: " + (num1 + num2));
+            } catch (NumberFormatException ex) {
+                //si hay un error se muestra un mensaje de error (entrada invalida)
+                resultado.setText("Entrada invalida");
+            }
+        });
+        //se agregan los botones al popup principal
+        panel.add(botonSumar);
+        panel.add(resultado);
+        
+        //se retorna el panel
+        return panel;
+    }
+
+    //metodo para invocar UI (escritura de texto)
     private JPanel crearPanelEditor() { 
         //creacion de panel dentro del menu principal para edicion de texto
         JPanel panel = new JPanel(new BorderLayout());
@@ -63,10 +103,19 @@ public class FileExplorer extends  JFrame {
         //variable para panel de botones (parte superior)
         JPanel panelBotones = new JPanel();
         JButton botonAbrir= new JButton("Abrir");  
+
         //action listener para abrir el archivo con los botones de windows
         botonAbrir.addActionListener(e -> abrirArchivo());
         //se agrega a la variable de botones
         panelBotones.add(botonAbrir);
+
+        //variable para el boton de calculadora
+        JButton botonCalculadora= new JButton("Calculadora");
+        //listener para hacer que la ventana de calculadora se muestre al presionar el boton
+        botonCalculadora.addActionListener(e -> cardLayout.show(mainPanel, "CALCULADORA"));
+        //se agrega a la barra principal
+        panelBotones.add(botonCalculadora);
+
         //centralizar el area del texto
         //ahora los botones estan en la parte superior y el area de texto en el centro
         panel.add(panelBotones, BorderLayout.NORTH);
