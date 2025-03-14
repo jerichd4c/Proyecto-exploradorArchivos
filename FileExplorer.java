@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.filechooser.*;
 
 //Clase principal para ventana
 public class FileExplorer extends  JFrame {
@@ -33,7 +34,7 @@ public class FileExplorer extends  JFrame {
         //creacion de botones editor y calculadora para cambiar de ventana (implementacion lista)
         mainPanel.add(crearPanelEditor(), "EDITOR");
         mainPanel.add(crearPanelCalculadora(), "CALCULADORA");
-
+        
         //metodo para agregar el panel al menu principal
         add(mainPanel);
         //
@@ -104,10 +105,19 @@ public class FileExplorer extends  JFrame {
         JPanel panelBotones = new JPanel();
         JButton botonAbrir= new JButton("Abrir");  
 
+
+
+    JButton botonGuardar= new JButton("Guardar");
+    botonGuardar.addActionListener(e -> guardarArchivo());
+
+
+
+
         //action listener para abrir el archivo con los botones de windows
         botonAbrir.addActionListener(e -> abrirArchivo());
         //se agrega a la variable de botones
         panelBotones.add(botonAbrir);
+        panelBotones.add(botonGuardar);
 
         //variable para el boton de calculadora
         JButton botonCalculadora= new JButton("Calculadora");
@@ -173,6 +183,47 @@ public class FileExplorer extends  JFrame {
         }
         
     }
+
+    private boolean isModified = false;
+    private File currentFile;
+
+    //metodo para guardar el archivo
+    private void guardarArchivo(){
+        //variable para guardar el archivo
+        JFileChooser fileChooser = new JFileChooser();
+        //filtro que solo permite archivos .TXT
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos TXT", "txt"));
+        //el archivo selecionado sera el de la clase actual (FileExplorer) (setter)
+        int result = fileChooser.showSaveDialog(this);
+        //condicional de que si se cumple, el archivo se guarda en la variable
+        //primer condicional
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            //condicional que expresa si el archivo no es un .txt, retorna la ruta absoluta del archivo y le agrega .txt
+            //segundo condicional
+            if (!archivo.getName().toLowerCase().endsWith(".txt")) {
+                archivo = new File(archivo.getAbsolutePath() + ".txt");
+            }
+            // confirmar sobreescritura si existe un archivo con el mismo nombre
+            if (archivo.exists()) {
+                int confirmacion = JOptionPane.showConfirmDialog(this,
+                    "El archivo ya existe. ¿Desea sobreescribirlo?",
+                    "Confirmar", 
+                    // se le dara la opcion al usuario de escoger SI o NO
+                    JOptionPane.YES_NO_OPTION
+                    );
+                    //si no es ninguna de las dos, cancelar
+                    if (confirmacion != JOptionPane.YES_OPTION) return;
+                    }
+                    try (FileWriter writer = new FileWriter(archivo)) {
+                        writer.write(areaTexto.getText());
+                        currentFile = archivo;
+                        isModified = false; 
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(this, "Error al guardar el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}        
 
     //ejecucion main
     public static void main(String[] args) {
