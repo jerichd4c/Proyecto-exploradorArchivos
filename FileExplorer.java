@@ -178,10 +178,28 @@ public class FileExplorer extends  JFrame {
 
     //metodo para abrir el archivo
     private void abrirArchivo() {
-        //variable tipo JFileChooser para abrir archivos
+        //variable tipo JFileChooser para abrir archivos (usa directorio del usuario)
         JFileChooser fileChooser = new JFileChooser();
+
+        //Opcional: quitar slashes si se quiere activar verificacion automatica
+
+        //Filtro para que solo se puedan abrir archivos.txt
+        //FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos TXT", "txt");
+        //se escoge de filtro el filtro anteriormente creado
+        //fileChooser.setFileFilter(filter);
+        //todos los demas extensiones de archivos son bloqueadas
+        //fileChooser.setAcceptAllFileFilterUsed(false);
+
         //condicional que tiene de argumento fileExplorer y se cumple si es una opcion valida (setter)
         if (fileChooser.showOpenDialog(this)== JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            //condicional que verifica y obtiene el nombre del archivo, lo pone en minusculas, y verifica si termina en .txt (SI NO SE CUMPLE UNA NO ES VALIDO)
+            if (!selectedFile.getName().toLowerCase().endsWith(".txt")) {
+                //mensaje de error si no se cumple la condicion
+                JOptionPane.showMessageDialog(this, "Solo se permiten archivos .txt", "Tipo de archivo invalido", JOptionPane.ERROR_MESSAGE);
+                //regresa al inicio
+                return;
+            }
            try {
                //variable para almacenar el contenido del archivo (usa el explorador de archivos para seleccionar el archivo)
                String contenido = new String(Files.readAllBytes(fileChooser.getSelectedFile().toPath()));

@@ -1,5 +1,3 @@
-2. Cargar archivo solo puede reconocer archivos con extensión.txt, es decir, archivo que puede ser leidos y leen ejemplo, los metadatos, no son validos, solo pueden tener extensión .txt
-
 3. Agregar un botón cerrar archivo para cerrar el archivo, preguntar antes de cerrar si quiere guardar los cambios antes (como en Word: si, no, cancelar)
 
 	3A. Se tiene que hacer lo mismo con el botón X (si, no, cancelar)
