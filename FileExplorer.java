@@ -14,7 +14,13 @@ public class FileExplorer extends  JFrame {
     private JPanel mainPanel;
     //creacion de variable para almacenar contador de palabras (se inserta dentro de panelStats)
     private JLabel etiquetaEstadistica;
-    //agregar panel de calculadora como ventana secundaria (boton de popup menu)
+    //booleano para verificar si el archivo esta modificado
+    private boolean isModified;
+    //variable para almacenar el archivo dentro del metodo
+     private File currentFile;
+    //creacion de la variable "areaTexto" dentro de la clase fileExplorer
+    private JTextArea areaTexto;
+
     //metodo para inicializar la ventana con parametros default
     public FileExplorer(){
         //titulo del programa
@@ -37,7 +43,7 @@ public class FileExplorer extends  JFrame {
         
         //metodo para agregar el panel al menu principal
         add(mainPanel);
-        //
+        
         //Barra de menu basica para navegar
         //creacion de barra de menu
         JMenuBar menuBar = new JMenuBar();
@@ -54,8 +60,6 @@ public class FileExplorer extends  JFrame {
         //agrega barra a ventana principal
         setJMenuBar(menuBar);
     }
-    //creacion de la variable "areaTexto" dentro de la clase fileExplorer
-    private JTextArea areaTexto;
 
     //metodo para invocar UI (calculadora)
     private JPanel crearPanelCalculadora() {
@@ -104,16 +108,10 @@ public class FileExplorer extends  JFrame {
         //variable para panel de botones (parte superior)
         JPanel panelBotones = new JPanel();
         JButton botonAbrir= new JButton("Abrir");  
-
-
-
-    JButton botonGuardar= new JButton("Guardar");
-    botonGuardar.addActionListener(e -> guardarArchivo());
-
-
-
+        JButton botonGuardar= new JButton("Guardar");
 
         //action listener para abrir el archivo con los botones de windows
+        botonGuardar.addActionListener(e -> guardarArchivo());
         botonAbrir.addActionListener(e -> abrirArchivo());
         //se agrega a la variable de botones
         panelBotones.add(botonAbrir);
@@ -157,8 +155,22 @@ public class FileExplorer extends  JFrame {
         int chars= texto.length();
         //variable cuya condicion es que registra palabra si y solo si hay un espacio entre los caracteres //s
         int words= texto.isEmpty() ? 0: texto.split("\\s+").length; 
-        //variable que registra una linea si y solo si hay un salto //n
-        int lines= texto.split("\n").length;
+        //variable que registra una linea si y solo si hay un salto //n (nueva logica)
+        int lines=0;
+        //si en el espacio NO hay texto, no se cuentan lineas
+        if (!texto.isEmpty()) {
+            //agrupa TODAS las lineas vacias en un array, \n es el salto para detectar la linea vacia
+            String[] lineasArray = texto.split("\n");
+            //bucle que recorre el array en todas las lineas vacias
+            for (String linea : lineasArray) {
+                //trim verifica si no hay espacios entre palabras y isempty verifica si esta vacio despues del trim
+                if (!linea.trim().isEmpty()) {
+                    //si la linea no esta vacia, se cuenta y se agrega al array
+                    lines++;
+                }
+            }
+        }
+       
         //metodo que actualizara la etiqueta con los datos obtenidos (%d)
         etiquetaEstadistica.setText(String.format(
             "Caracteres: %d | Palabras: %d | Lineas: %d", chars, words, lines));
@@ -183,9 +195,6 @@ public class FileExplorer extends  JFrame {
         }
         
     }
-
-    private boolean isModified = false;
-    private File currentFile;
 
     //metodo para guardar el archivo
     private void guardarArchivo(){
@@ -234,33 +243,3 @@ public class FileExplorer extends  JFrame {
         });
     }
 }
-
-// //Botones principales para los botones
-// class FileEditorPanel extends JPanel {
-//     //variable para el area de texto
-//     private JTextArea areaTexto;
-//     //variable para los botones
-//     private JButton botonAbrir, botonGuardar, botonCerrar;
-//     //metodo para la aparicion de botones en la interfaz
-//     public FileEditorPanel() {
-//         //asignacion de layout
-//         setLayout(new BorderLayout());
-//         //panel de botones
-//         JPanel panelBotones = new JPanel();
-//         botonAbrir= new JButton("Abrir");
-//         botonGuardar = new JButton("Guardar");
-//         botonCerrar = new JButton("Cerrar");
-//         panelBotones.add(botonAbrir);
-//         panelBotones.add(botonGuardar);
-//         panelBotones.add(botonCerrar);
-//         //area de texto
-//         //uso de area texto dentro del metodo fileeditorpanel
-//         areaTexto = new JTextArea();
-//         //creacion de variable para el scroll (barra de desplazamiento)
-//         JScrollPane scrollPane= new JScrollPane(areaTexto);
-//         //asignacion de botones en la parte superior del explorador
-//         add(panelBotones, BorderLayout.NORTH);
-//         //area de texto (ventana) en el centro del explorador
-//         add(scrollPane, BorderLayout.CENTER);
-//     }
-// }
