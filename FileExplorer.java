@@ -1,5 +1,6 @@
 //Librerias necesarias
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
 import javax.swing.*;
@@ -17,7 +18,7 @@ public class FileExplorer extends  JFrame {
     //booleano para verificar si el archivo esta modificado
     private boolean isModified;
     //variable para almacenar el archivo dentro del metodo
-     private File currentFile;
+    private File currentFile;
     //creacion de la variable "areaTexto" dentro de la clase fileExplorer
     private JTextArea areaTexto;
 
@@ -25,8 +26,23 @@ public class FileExplorer extends  JFrame {
     public FileExplorer(){
         //titulo del programa
         super("Explorador de Archivos");
-        //metodo para cerrar la ventana al presionar la x
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //metodo para cerrar la ventana al presionar la x (tambien se llama al metodo cerrar archivo)
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        //se abrira una ventana nueva
+        addWindowListener(new WindowAdapter() {
+            //se implementa el metodo para cerrar la ventana a traves de override
+            @Override
+            //se invoca el metodo al cerrar la ventana (del programa)
+            //e es para la (X)
+            public void windowClosing(WindowEvent e) {
+                //metodo fuera del file explorer, se usa el override para reconocerlo
+                cerrarArchivo(); 
+                //si no hay archivo Y no esta modificado, se cierra de forma normal
+                if (currentFile == null && !isModified) {
+                    dispose(); 
+                }
+            }
+        });
         //metodo para ajustar la dimension de la ventana
         setSize(800, 600);
         //metodo para centrar la ventana
@@ -100,7 +116,8 @@ public class FileExplorer extends  JFrame {
     }
 
     //metodo para invocar UI (escritura de texto)
-    private JPanel crearPanelEditor() { 
+    private JPanel crearPanelEditor () { 
+        
         //creacion de panel dentro del menu principal para edicion de texto
         JPanel panel = new JPanel(new BorderLayout());
         areaTexto = new JTextArea();
@@ -109,13 +126,17 @@ public class FileExplorer extends  JFrame {
         JPanel panelBotones = new JPanel();
         JButton botonAbrir= new JButton("Abrir");  
         JButton botonGuardar= new JButton("Guardar");
+        JButton botonCerrar= new JButton("Cerrar");
 
         //action listener para abrir el archivo con los botones de windows
         botonGuardar.addActionListener(e -> guardarArchivo());
         botonAbrir.addActionListener(e -> abrirArchivo());
+        botonCerrar.addActionListener(e -> cerrarArchivo());
+
         //se agrega a la variable de botones
         panelBotones.add(botonAbrir);
         panelBotones.add(botonGuardar);
+        panelBotones.add(botonCerrar);
 
         //variable para el boton de calculadora
         JButton botonCalculadora= new JButton("Calculadora");
@@ -140,10 +161,18 @@ public class FileExplorer extends  JFrame {
         //getDocument obtiene el area de texto y addDocumentListener escucha el area de texto (creacion)
         areaTexto.getDocument().addDocumentListener(new DocumentListener() {
             //si se inserta o remueve se llama a el metodo actualizarEstadisticas y se ejecuta
-            public void insertUpdate(DocumentEvent e) { actualizarEstadisticas(); }
-            public void removeUpdate(DocumentEvent e) { actualizarEstadisticas(); }
-            public void changedUpdate(DocumentEvent e) {}
+            public void insertUpdate(DocumentEvent e) { 
+                //actualizar isModified en el metodo crearPanelEditor (problema era que la variable no existia en el metodo)
+                isModified = true;
+                actualizarEstadisticas(); }
+            public void removeUpdate(DocumentEvent e) { 
+                isModified = true;
+                actualizarEstadisticas(); }
+            public void changedUpdate(DocumentEvent e) { 
+                isModified = true;
+                actualizarEstadisticas(); }
         });
+
         return panel;
     }
 
@@ -251,6 +280,59 @@ public class FileExplorer extends  JFrame {
         }
     }
 }        
+    //metodo para cerrar el archivo por medio del boton
+    //cambiado a boolean para que devuelva verdadero o falso
+    public boolean cerrarArchivo() {
+        //condicional que verifica si el archivo se modifico
+        if (isModified) {
+            //se muestra el dialogo de confirmacion
+            int opcion = mostrarDialogoGuardar();
+            //menu switch para las opciones tomando de base mostrarDialogo guardar
+            switch (opcion) {
+                case 0: //Opcion SI
+                    guardarArchivo();
+                    if (isModified) return false; //si se cancelo el guardado, regresa al inicio
+                    break;
+                case 1: //Opcion NO
+                    isModified=false;
+                    break; //se cierra el archivo
+                case 2: //Cancelar
+                default:
+                    return false; //no se cierra ni se guarda, se sigue en la ventana
+            }
+        }
+       //limpia el area de texto en su totalidad
+       areaTexto.setText("");
+       //la variable que contenia el espacio de memoria del archivo se declara vacia
+       currentFile = null;
+       //estado de isModified se declara falso en caso de que no entre en el condicional
+       isModified = false;
+       //se actualiza las estadisticas en caso de que se haya cerrado el archivo
+       actualizarEstadisticas();
+       return true;
+    }
+
+    //metodo para confirmar guardado
+    public int mostrarDialogoGuardar() {
+        //toma de argumento el archivo actual "this" y muestra las opciones disponibles (message, title, optionType, messageType
+        //icon, options, initialValue)
+        return JOptionPane.showOptionDialog (this,
+        //mensaje inicial
+            "¿Desea guardar los cambios antes de cerrar?",
+        //titulo del popup
+            "Confirmar cierre",
+            //se le dara la opcion al usuario de escoger SI, NO o CANCELAR (tipo de opcion)
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            //tipo de mensaje
+            JOptionPane.WARNING_MESSAGE,
+            //no se va a mostrar ningun icono (parametro de icono)
+            null, 
+            //parametros de las opciones disponibles
+            new Object[]{"SI", "NO", "CANCELAR"},
+            //seleccion por defecto
+            "Guardar cambios"
+            );
+        }
 
     //ejecucion main
     public static void main(String[] args) {
