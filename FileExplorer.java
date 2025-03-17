@@ -85,32 +85,76 @@ public class FileExplorer extends  JFrame {
         JTextField texto1 = new JTextField();
         //se almacena segundo valor (visualizacion)
         JTextField texto2 = new JTextField();
-        //se almacena resultado (visualizacion)
-        JLabel resultado = new JLabel("Resultado: ");
-
+    
         panel.add(new JLabel("Primer valor: "));
         panel.add(texto1);
         panel.add(new JLabel("Segundo valor: "));
         panel.add(texto2);
-        //se agrega boton para sumar, ejecutado por actionListener
+        //se agrega boton para sumar, restar, multiplicar, dividir y potencia y se ejecuta por actionListener
         JButton botonSumar= new JButton("Sumar");
-        botonSumar.addActionListener(e->{
+        JButton botonRestar= new JButton("Restar");
+        JButton botonMultiplicar= new JButton("Multiplicar");
+        JButton botonDividir= new JButton("Dividir");
+        JButton botonPotencia= new JButton("Potencia");
+
+        //creacion de variable local en metodo CrearPanelCalculadora para mostrar el resultado de la operacion
+        JLabel resultadoLabel = new JLabel("Resultado: ", SwingConstants.CENTER);
+
+        //action listener generico para todas las operaciones
+        //variable Action listener
+        ActionListener operacionListener = e->{
             try {
                 //se hace la operacion de sumar
                 //convierte los numeros a enteros con parseInt
-                int num1 = Integer.parseInt(texto1.getText());
-                int num2 = Integer.parseInt(texto2.getText());
+                double num1 = Double.parseDouble(texto1.getText());
+                double num2 = Double.parseDouble(texto2.getText());
+                //variable para manejar menu switch basandose en el input de la calculadora
+                String operacion = ((JButton)e.getSource()).getText();
+                //se guardara el resultado del switch en la operacion
+                double resultado = switch(operacion) {
+                    case "Sumar" -> num1 + num2;
+                    case "Restar" -> num1 - num2;
+                    case "Multiplicar" -> num1 * num2;
+                    case "Dividir" -> {
+                        //caso if si se divide entre 0
+                        if (num2 == 0) throw new ArithmeticException("Division por cero");
+                            //para el proceso de dividir entre 0 para evitar bucle
+                            yield num1 / num2;
+                        }
+                    case "Potencia" -> Math.pow(num1, num2);
+                        //en caso de que el input no sean numeros
+                        default -> throw new IllegalArgumentException("Operacion invalida");
+                    };
+                
                 //se muestra la operacion
-                resultado.setText("Resultado: " + (num1 + num2));
+                resultadoLabel.setText(String.format("Resultado: " + resultado));
+
             } catch (NumberFormatException ex) {
                 //si hay un error se muestra un mensaje de error (entrada invalida)
-                resultado.setText("Entrada invalida");
+                resultadoLabel.setText("Entrada invalida");
+            } 
+            
+            catch (ArithmeticException ex) {
+                //si hay un error aritmetico, se muestra mensaje de error (division por cero)
+                resultadoLabel.setText("Error: "+ ex.getMessage());
             }
-        });
-        //se agregan los botones al popup principal
+        };
+
+        //se agregan los botones al popup principal y se ejecutan por actionListener
         panel.add(botonSumar);
-        panel.add(resultado);
-        
+        panel.add(botonRestar);
+        panel.add(botonMultiplicar);
+        panel.add(botonDividir);
+        panel.add(botonPotencia);
+        //Se agrega una label (no boton) para mostrar el resultado
+        panel.add(resultadoLabel);
+        //se ejecuta el actionListener
+        botonSumar.addActionListener(operacionListener);
+        botonRestar.addActionListener(operacionListener);
+        botonMultiplicar.addActionListener(operacionListener);
+        botonDividir.addActionListener(operacionListener);
+        botonPotencia.addActionListener(operacionListener);
+
         //se retorna el panel
         return panel;
     }
