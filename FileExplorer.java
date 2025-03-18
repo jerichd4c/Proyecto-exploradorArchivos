@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
+import java.util.Base64;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -291,19 +292,43 @@ public class FileExplorer extends  JFrame {
                 //regresa al inicio
                 return;
             }
-           try {
+            //try-catch para verificar archivos con contrasena
+            try {
                //variable para almacenar el contenido del archivo (usa el explorador de archivos para seleccionar el archivo)
-               String contenido = new String(Files.readAllBytes(fileChooser.getSelectedFile().toPath()));
-               //implementa el contenido del archivo en el area de texto
-               areaTexto.setText(contenido);
-           } catch (IOException ex) { 
+               //selectedFile es la variable que almacena el archivo
+               String contenido = new String(Files.readAllBytes(selectedFile.toPath()));
+               //si el area del texto comienza con [PROTEGIDO] significa que el archivo esta encriptado
+                if (contenido.startsWith("[PROTEGIDO]")) {
+                String clave = JOptionPane.showInputDialog("Ingrese la contraseña:");
+                //si no se ingresa ninguna contrasena, se regresa al inicio debido al fallo de verificacion
+                if (clave == null || clave.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Contraseña no ingresada", "Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+            //try-catch para verificar la contrasena
+                try {
+                    contenido = descifrarContrasena(contenido.substring(11), clave); 
+
+           } catch (Exception ex) { 
             //Error si el archivo que se abre tiene un formato invalido
-            JOptionPane.showMessageDialog(this, "Error al abrir el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Contraseña incorrecta", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
            }
-            
         }
-        
+        //ya el archivo esta abierto, por lo tanto se pone en el area de texto el cotenido
+        areaTexto.setText(contenido);  
+        //el archivo selecionado sera el de la clase actual (FileExplorer) 
+        currentFile = selectedFile;
+        //variable isModified que se actualizara en el metodo de estadisticas
+        isModified= false;
+        actualizarEstadisticas();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, 
+            "Error al leer el archivo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+}
 
     //metodo para guardar el archivo
     private void guardarArchivo(){
@@ -333,8 +358,24 @@ public class FileExplorer extends  JFrame {
                     //si no es ninguna de las dos, cancelar
                     if (confirmacion != JOptionPane.YES_OPTION) return;
                     }
+                    //popup que aparecera al momento de guardar
+                    int opcion = JOptionPane.showConfirmDialog(this,
+                        "¿Desea proteger el archivo con contraseña?",
+                        "Proteger con contraseña",
+                        JOptionPane.YES_NO_OPTION);
+                    //variable que almacenara el contenido y la contrasena (si es que tiene)
+                    String contenido= areaTexto.getText();
+
+                    if (opcion== JOptionPane.YES_OPTION) {
+                        String clave = JOptionPane.showInputDialog(this, "Ingrese la contraseña:");
+                        //si la contrasena es nula o vacia, sigue el flujo normal
+                        if (clave == null || clave.isEmpty()) return;
+                        //el archivo ahora se guardar como una variable en vez de como areaTexto
+                        contenido= "[PROTEGIDO]"+cifrarContrasena(contenido, clave);
+                    }
+
                     try (FileWriter writer = new FileWriter(archivo)) {
-                        writer.write(areaTexto.getText());
+                        writer.write(contenido);
                         currentFile = archivo;
                         isModified = false; 
                     } catch (IOException ex) {
@@ -395,6 +436,54 @@ public class FileExplorer extends  JFrame {
             "Guardar cambios"
             );
         }
+
+
+    //PARA ESTOS DOS METODOS SE UTILIZARA EL VALOR DECIMAL DE LOS CARACTERES
+
+    //metodo para cifrar contraseñas
+    private static String cifrarContrasena(String texto, String clave) {
+        //stringbuilder permite modificar el texto sin necesidad de crear otro objeto adicional
+        StringBuilder cifrado = new StringBuilder();
+        //el texto se convierte a un valor int sumando TODO el string y la suma se guarda en la variable
+        int sumClave= clave.chars().sum();
+        //para cada caracter del array, convertira cada dato a un char y se le sumara a el array
+        for (char c : texto.toCharArray()) {
+            //bucle que va a agregar los datos convertidos a char a el array StringBuilder, sumando el valor del char Y el valor total de la suma del string
+            cifrado.append((char) (c + sumClave));
+        }
+        //metodo getEncoder retornara una contrasena cifrada
+        //metodo getBytes retorna el objeto tipo String en un arreglo, y toString lo convierte a un string de bytes legible (no se va a mostrar)
+        return Base64.getEncoder().encodeToString(cifrado.toString().getBytes());
+
+        /////ejemplo practico:
+        // cifrado.toString() → "×˜˜"
+        // .getBytes() → [0xc3, 0x97, 0xc3, 0x9f, 0xc2, 0x81, 0xc2, 0x8d, 0xc2, 0x90, 0xc2, 0x8f, 0xc2, 0x8d, 0xc2, 0x90, 0xc2, 0x8e, 0xc2, 0x8f] (byte array)
+        // Base64.getEncoder() → Base64.Encoder object
+        // .encodeToString() → "eHR5IG1vZGUgdGhlIG1lc3NhZ2U=" (Base64-encoded string)
+        // return → "eHR5IG1vZGUgdGhlIG1lc3NhZ2U=" (final result)
+    }
+
+    //metodo para descifrar contraseñas
+    private static String descifrarContrasena(String textoCifrado, String clave) {
+        //arreglo de bites, se hace la llamada al metodo decode que va a decodificar el texto cifrado
+        //getDecoder va a retornar el la contrasena decodificada
+        byte[] bytesDescifrados = Base64.getDecoder().decode(textoCifrado); 
+        //variable que almacenara la contrasena descifrada
+        String texto = new String(bytesDescifrados);
+        //se aplicara la misma logica para cifrar pero a la inversa
+        //varible que StringBuilder que retornara la contrasena original
+        StringBuilder original = new StringBuilder();
+        //el texto se convierte a un valor int sumando TODO el string y la suma se guarda en la variable 
+        int sumClave= clave.chars().sum();
+        //para cada caracter del array, convertira cada dato a un char y se le restara a el array
+        for (char c : texto.toCharArray()) {
+            //bucle que va a agregar los datos convertidos a char a el array StringBuilder, RESTANDO el valor del char Y el valor total de la suma del string
+            //mientras la resta este dentro del rango valido de la suma de la clave, significa que el proceso de encriptacion fue correcto
+            original.append((char) (c - sumClave));
+        }
+        //se retorna la contrasena original
+        return original.toString();
+    }
 
     //ejecucion main
     public static void main(String[] args) {
