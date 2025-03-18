@@ -80,26 +80,27 @@ public class FileExplorer extends  JFrame {
     //metodo para invocar UI (calculadora)
     private JPanel crearPanelCalculadora() {
         //creacion del popup con 3 filas y 2 columnas
-        JPanel panel = new JPanel(new GridLayout(3,2));
-        //se almacena primer valor (visualizacion)
-        JTextField texto1 = new JTextField();
-        //se almacena segundo valor (visualizacion)
-        JTextField texto2 = new JTextField();
-    
-        panel.add(new JLabel("Primer valor: "));
-        panel.add(texto1);
-        panel.add(new JLabel("Segundo valor: "));
-        panel.add(texto2);
-        //se agrega boton para sumar, restar, multiplicar, dividir y potencia y se ejecuta por actionListener
-        JButton botonSumar= new JButton("Sumar");
-        JButton botonRestar= new JButton("Restar");
-        JButton botonMultiplicar= new JButton("Multiplicar");
-        JButton botonDividir= new JButton("Dividir");
-        JButton botonPotencia= new JButton("Potencia");
+        //ahora se usara borderLayout para que este en la parte superior y ocupe menos espacio
+        JPanel panel = new JPanel(new BorderLayout(5,5));
+
+        //los botones ahora se almacenan en una variable tipo flow, es decir en secuencia en vez de caja
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
         //creacion de variable local en metodo CrearPanelCalculadora para mostrar el resultado de la operacion
         JLabel resultadoLabel = new JLabel("Resultado: ", SwingConstants.CENTER);
+        //se ajusta el tamaño del resultado para que este mas grande
+        resultadoLabel.setPreferredSize(new Dimension(300, 30));
 
+        //se almacena primer valor (visualizacion)
+        JTextField texto1 = new JTextField(15);
+        //se almacena segundo valor (visualizacion)
+        JTextField texto2 = new JTextField(15);
+    
+        inputPanel.add(new JLabel("Primer valor: "));
+        inputPanel.add(texto1);
+        inputPanel.add(new JLabel("Segundo valor: "));
+        inputPanel.add(texto2);
+        
         //action listener generico para todas las operaciones
         //variable Action listener
         ActionListener operacionListener = e->{
@@ -139,21 +140,38 @@ public class FileExplorer extends  JFrame {
                 resultadoLabel.setText("Error: "+ ex.getMessage());
             }
         };
+        
+        //creacion de panel para botones compacto, ahora no seran botones separados
+        JPanel botonesPanel = new JPanel(new GridLayout(0, 3, 5, 5));
+        //array con las operaciones disponibles
+        String[] operaciones = {"Sumar", "Restar", "Multiplicar", "Dividir", "Potencia", "Borrar"};
+        //operaciones se abreviara como op
+        for (String op : operaciones) {
+            //se va a crear el boton y se va a guardar los valores del array en dicho boton
+            JButton boton = new JButton(op);
+            //se le da el tamaño de 60x30
+            boton.setPreferredSize(new Dimension(50,30));
+            //si se quiere borrar los digitos, se activa con action listener
+            if (op.equals("Borrar")) {
+                //se activa el boton con actionListener
+                boton.addActionListener(e->{
+                    // se limpian los digitos con ""
+                    texto1.setText("");
+                    texto2.setText("");
+                    resultadoLabel.setText("Resultado: ");
+                });
+                } else {
+                    boton.addActionListener(operacionListener);
+                }
+                botonesPanel.add(boton);
+            }
 
-        //se agregan los botones al popup principal y se ejecutan por actionListener
-        panel.add(botonSumar);
-        panel.add(botonRestar);
-        panel.add(botonMultiplicar);
-        panel.add(botonDividir);
-        panel.add(botonPotencia);
-        //Se agrega una label (no boton) para mostrar el resultado
-        panel.add(resultadoLabel);
-        //se ejecuta el actionListener
-        botonSumar.addActionListener(operacionListener);
-        botonRestar.addActionListener(operacionListener);
-        botonMultiplicar.addActionListener(operacionListener);
-        botonDividir.addActionListener(operacionListener);
-        botonPotencia.addActionListener(operacionListener);
+        //se agrega el panel de input a la ventana (donde se escribiran las operaciones)
+        panel.add(inputPanel, BorderLayout.NORTH);
+        //se agrega el panel de botones en la parte del centro
+        panel.add(botonesPanel, BorderLayout.CENTER);
+        //se agrega el panel de resultados en la parte de abajo
+        panel.add(resultadoLabel, BorderLayout.SOUTH);
 
         //se retorna el panel
         return panel;

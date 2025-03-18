@@ -1,3 +1,2 @@
 	4A. Mejorar vista de la calculadora para asegurarse que los botones no se vean tan grandes.
-	4B. Intentar hacer UNA sola linea para todos los números
 
